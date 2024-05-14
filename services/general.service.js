@@ -28,12 +28,14 @@ function parseContent(contentString) {
   };
 }
 
-async function addContent(contentString) {
+async function addContent(contentString, messageId) {
   console.log(contentString);
 
   const { time, content } = parseContent(contentString);
-  console.log(time, content);
+  console.log(time, content, messageId);
 }
+
+async function updateContent(contentObject) {}
 
 function deleteContent(contentId) {}
 

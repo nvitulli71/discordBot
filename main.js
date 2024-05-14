@@ -21,9 +21,10 @@ client.once(Events.ClientReady, (readyClient) => {
 client.login(token);
 
 client.on("messageCreate", async (message) => {
-  const serverId = message.guild.id;
+  const serverId = message.guild.id; // Will eventually need if using a DB
   const channelId = message.channel.id;
   const messageId = message.id;
+  // Make sure this is the right channel
 
   if (message.author.bot) return;
   if (!message.content || !message.content.startsWith(COMMAND_PREFIX)) return;
@@ -44,7 +45,7 @@ client.on("messageCreate", async (message) => {
           });
       case message.content.startsWith(`${COMMAND_PREFIX}content_in`):
         let content = message.content;
-        await addContent(content)
+        await addContent(content, messageId)
           .catch(() => {
             message.react("❌");
             message.reply("There was an issue adding in content...");
