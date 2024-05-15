@@ -17,8 +17,6 @@ async function setChannel(channelId) {
   await writeFile("channel.json", data);
 }
 
-function getChannel() {}
-
 function parseContent(contentString) {
   const parseContent = contentString.split(" ");
 
@@ -29,18 +27,45 @@ function parseContent(contentString) {
 }
 
 async function addContent(contentString, messageId) {
-  console.log(contentString);
-
   const { time, content } = parseContent(contentString);
-  console.log(time, content, messageId);
+  const newTime = modifyDate(time);
+  await addContentToFile({ time: newTime, content, id: messageId });
+  return newTime;
 }
 
-async function updateContent(contentObject) {}
+async function addContentToFile(contentObject) {
+  const fileName = "content.json";
+  let jsonPath = path.join(__dirname, "..", "data", `${fileName}`);
+  if (fs.existsSync(jsonPath)) {
+    const data = JSON.parse(fs.readFileSync(jsonPath));
+    data["content"].push(contentObject);
+    writeFile(fileName, data);
+  } else {
+    writeFile(fileName, { content: [contentObject] });
+  }
+}
+
+async function updateContent(contentObject, messageId) {}
 
 function deleteContent(contentId) {}
 
-function displayContent() {}
+function getContent() {
+  const fileName = "content.json";
+  let jsonPath = path.join(__dirname, "..", "data", `${fileName}`);
+  if (fs.existsSync(jsonPath)) {
+    const data = JSON.parse(fs.readFileSync(jsonPath));
+    return data;
+  } else {
+    return {};
+  }
+}
 
-function checkForContent() {}
+function modifyDate(additionalTime) {
+  const parsedTime = additionalTime.split(":");
+  const additionalMinutes = (parsedTime[0] * 60 + parsedTime[1]) * 1000;
+  const date = new Date();
+  const updatedDate = date.setTime(date.getTime() + additionalMinutes);
+  return Math.floor(updatedDate / 1000);
+}
 
-module.exports = { setChannel, addContent };
+module.exports = { setChannel, addContent, getContent };
