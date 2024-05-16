@@ -5,7 +5,12 @@ const {
   EmbedBuilder,
 } = require("discord.js");
 const { token } = require("./config.json");
-const { setChannel, addContent } = require("./services/general.service");
+const {
+  setChannel,
+  addContent,
+  createEmbedData,
+  deleteContentFromMessage,
+} = require("./services/general.service");
 const { channelId } = require("./data/channel.json");
 
 const COMMAND_PREFIX = "!";
@@ -36,6 +41,8 @@ client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
   if (!message.content || !message.content.startsWith(COMMAND_PREFIX)) return;
   if (message.content.startsWith(COMMAND_PREFIX)) {
+    let content = message.content;
+
     switch (true) {
       case message.content.startsWith(`${COMMAND_PREFIX}set_channel`):
         let channelId = message.content.replace(/\D/g, "");
@@ -52,11 +59,11 @@ client.on("messageCreate", async (message) => {
             message.reply("Channel was set...");
           })
           .catch(() => void 0);
+        return;
       case setChannelId === channel_id:
         switch (true) {
           case message.content.startsWith(`${COMMAND_PREFIX}content_in`):
-            let content = message.content;
-            await addContent(content, message_id)
+            await addContent(content, message_id, message.url)
               .catch((err) => {
                 message.react("❌");
                 message.reply("There was an issue adding in content...");
@@ -65,35 +72,35 @@ client.on("messageCreate", async (message) => {
               .then((data) => {
                 message.react("✅");
                 message.reply(
-                  `Content will begin in <t:${data}:R> at <t:${data}:t> on <t:${data}:D>`
+                  `Content will begin in <t:${data.discordTime}:R> at <t:${data.discordTime}:t> (\`${data.utcTime}\ UTC\`) on <t:${data.discordTime}:D>`
                 );
               })
               .catch(() => void 0);
+            return;
           case message.content.startsWith(`${COMMAND_PREFIX}all_content`):
+            const data = await createEmbedData();
             const exampleEmbed = new EmbedBuilder()
               .setColor(0x0099ff)
               .setTitle("Calm Content")
-              .addFields(
-                {
-                  name: "Regular field title",
-                  value: "Some value here",
-                  inline: false,
-                },
-                {
-                  name: "Inline field title",
-                  value: "Some value here",
-                  inline: false,
-                },
-                {
-                  name: "Inline field title",
-                  value: "Some value here",
-                  inline: false,
-                }
-              )
+              .addFields(data)
               .setTimestamp();
             client.channels.cache
               .get(setChannelId)
               .send({ embeds: [exampleEmbed] });
+            return;
+          case message.content.startsWith(`${COMMAND_PREFIX}delete`):
+            await deleteContentFromMessage(content)
+              .catch((err) => {
+                message.react("❌");
+                message.reply("There was an issue deleting this content...");
+                throw new Error(err);
+              })
+              .then((data) => {
+                message.react("✅");
+                message.reply(`Content has been deleted...`);
+              })
+              .catch(() => void 0);
+            return;
           default:
             return;
         }
