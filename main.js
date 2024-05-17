@@ -39,22 +39,19 @@ client.on("messageCreate", async (message) => {
   const setChannelId = channelId || 0;
 
   // Make sure this is the right channel
-  if (messageCount === 5) {
-    messageCount = 0;
-    const data = await createEmbedData();
-    const exampleEmbed = new EmbedBuilder()
-      .setColor(0x0099ff)
-      .setTitle("Calm Content")
-      .addFields(data)
-      .setTimestamp();
-    client.channels.cache.get(setChannelId).send({ embeds: [exampleEmbed] });
-  }
+  // if (messageCount === 5) {
+  //   messageCount = 0;
+  //   const data = await createEmbedData();
+  //   const exampleEmbed = new EmbedBuilder()
+  //     .setColor(0x0099ff)
+  //     .setTitle("Calm Content")
+  //     .addFields(data)
+  //     .setTimestamp();
+  //   client.channels.cache.get(setChannelId).send({ embeds: [exampleEmbed] });
+  // }
 
   if (message.author.bot) return;
-  if (!message.content || !message.content.startsWith(COMMAND_PREFIX)) {
-    if (setChannelId === channel_id) messageCount++;
-    return;
-  }
+  if (!message.content || !message.content.startsWith(COMMAND_PREFIX)) return;
   if (message.content.startsWith(COMMAND_PREFIX)) {
     let content = message.content;
 
@@ -91,8 +88,6 @@ client.on("messageCreate", async (message) => {
                 );
               })
               .catch(() => void 0);
-            messageCount++;
-
             return;
           case message.content.startsWith(`${COMMAND_PREFIX}all_content`):
             const data = await createEmbedData();
@@ -104,8 +99,6 @@ client.on("messageCreate", async (message) => {
             client.channels.cache
               .get(setChannelId)
               .send({ embeds: [exampleEmbed] });
-            messageCount++;
-
             return;
           case message.content.startsWith(`${COMMAND_PREFIX}delete`):
             await deleteContentFromMessage(content)
@@ -119,8 +112,6 @@ client.on("messageCreate", async (message) => {
                 message.reply(`Content has been deleted...`);
               })
               .catch(() => void 0);
-            messageCount++;
-
             return;
           case message.content.startsWith(`${COMMAND_PREFIX}help_content`):
             const helpEmbed = new EmbedBuilder()
@@ -144,8 +135,6 @@ client.on("messageCreate", async (message) => {
             client.channels.cache
               .get(setChannelId)
               .send({ embeds: [helpEmbed] });
-            messageCount++;
-
             return;
         }
     }
