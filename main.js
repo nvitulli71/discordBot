@@ -76,7 +76,6 @@ client.on("messageCreate", async (message) => {
           .catch(() => void 0);
         return;
       case setChannelId === channel_id:
-        messageCount++;
         switch (true) {
           case message.content.startsWith(`${COMMAND_PREFIX}content_in`):
             await addContent(content, message_id, message.url)
@@ -92,6 +91,8 @@ client.on("messageCreate", async (message) => {
                 );
               })
               .catch(() => void 0);
+            messageCount++;
+
             return;
           case message.content.startsWith(`${COMMAND_PREFIX}all_content`):
             const data = await createEmbedData();
@@ -103,6 +104,8 @@ client.on("messageCreate", async (message) => {
             client.channels.cache
               .get(setChannelId)
               .send({ embeds: [exampleEmbed] });
+            messageCount++;
+
             return;
           case message.content.startsWith(`${COMMAND_PREFIX}delete`):
             await deleteContentFromMessage(content)
@@ -116,6 +119,8 @@ client.on("messageCreate", async (message) => {
                 message.reply(`Content has been deleted...`);
               })
               .catch(() => void 0);
+            messageCount++;
+
             return;
           case message.content.startsWith(`${COMMAND_PREFIX}help_content`):
             const helpEmbed = new EmbedBuilder()
@@ -139,6 +144,8 @@ client.on("messageCreate", async (message) => {
             client.channels.cache
               .get(setChannelId)
               .send({ embeds: [helpEmbed] });
+            messageCount++;
+
             return;
         }
     }
