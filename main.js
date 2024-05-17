@@ -14,6 +14,7 @@ const {
 const { channelId } = require("./data/channel.json");
 
 const COMMAND_PREFIX = "!";
+let messageCount = 0;
 
 // Create a new client instance
 const client = new Client({
@@ -36,8 +37,22 @@ client.on("messageCreate", async (message) => {
   const channel_id = message.channel.id;
   const message_id = message.id;
   const setChannelId = channelId;
-  // Make sure this is the right channel
 
+  // Make sure this is the right channel
+  if (setChannelId === channel_id) {
+    messageCount++;
+    console.log(messageCount);
+    if (messageCount === 5) {
+      messageCount = 0;
+      const data = await createEmbedData();
+      const exampleEmbed = new EmbedBuilder()
+        .setColor(0x0099ff)
+        .setTitle("Calm Content")
+        .addFields(data)
+        .setTimestamp();
+      client.channels.cache.get(setChannelId).send({ embeds: [exampleEmbed] });
+    }
+  }
   if (message.author.bot) return;
   if (!message.content || !message.content.startsWith(COMMAND_PREFIX)) return;
   if (message.content.startsWith(COMMAND_PREFIX)) {
@@ -101,16 +116,30 @@ client.on("messageCreate", async (message) => {
               })
               .catch(() => void 0);
             return;
-          default:
+          case message.content.startsWith(`${COMMAND_PREFIX}help_content`):
+            const helpEmbed = new EmbedBuilder()
+              .setColor(0x0099ff)
+              .setTitle("Content Bot Commants")
+              .addFields(
+                {
+                  name: "Add Content",
+                  value: "`!content_in [HH:MM] [Content Description]`",
+                },
+                {
+                  name: "Delete Content",
+                  value: "`!delete [Content ID]`",
+                },
+                {
+                  name: "Show All Content",
+                  value: "`!all_content`",
+                }
+              )
+              .setTimestamp();
+            client.channels.cache
+              .get(setChannelId)
+              .send({ embeds: [helpEmbed] });
             return;
         }
-
-      default:
-        return;
     }
-
-    // Need a service here that we will pass the serverId and message into
-    // Will need to parse the message for time and type of content
-    // Will need to keep a timer somewhere to check every so often (maybe at the top of each hour and a command to show content comming up)
   }
 });

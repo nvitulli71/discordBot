@@ -31,7 +31,11 @@ async function createEmbedData() {
   content.forEach((element) => {
     responseData.push({
       name: `Content ID: ${element.id}`,
-      value: `[${element.content}](${element.url}) in <t:${element.time}:R> at <t:${element.time}:t> (\`${element.utcTime}\ UTC\`) on <t:${element.time}:D>`,
+      value: `[${element.content || "Unknown Content"}](${element.url}) in <t:${
+        element.time
+      }:R> at <t:${element.time}:t> (\`${element.utcTime}\ UTC\`) on <t:${
+        element.time
+      }:D>`,
       inline: false,
     });
   });
@@ -41,14 +45,26 @@ async function createEmbedData() {
 
 async function cleanUpContent() {
   const { content } = await getContent();
+  let contentCopy = JSON.parse(JSON.stringify(content));
 
   const date = new Date();
   content.forEach(async (element) => {
     let currentTime = Math.floor(date.getTime() / 1000);
     if (currentTime > element.time) {
-      await deleteContent(element.id);
+      const index = contentCopy.findIndex((i) => {
+        return i.id === element.id;
+      });
+      contentCopy.splice(index, 1);
     }
   });
+
+  const fileName = "content.json";
+  let jsonPath = path.join(__dirname, "..", "data", `${fileName}`);
+  if (fs.existsSync(jsonPath)) {
+    const data = JSON.parse(fs.readFileSync(jsonPath));
+    data["content"] = contentCopy;
+    writeFile(fileName, data);
+  }
 }
 
 async function addContent(contentString, messageId, messageUrl) {
