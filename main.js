@@ -11,7 +11,6 @@ const {
   createEmbedData,
   deleteContentFromMessage,
 } = require("./services/general.service");
-const { channelId } = require("./data/channel.json");
 
 const COMMAND_PREFIX = "!";
 let messageCount = 0;
@@ -33,26 +32,30 @@ client.once(Events.ClientReady, (readyClient) => {
 client.login(token);
 
 client.on("messageCreate", async (message) => {
+  const { channelId } = require("./data/channel.json");
+
   const server_id = message.guild.id; // Will eventually need if using a DB
   const channel_id = message.channel.id;
   const message_id = message.id;
   const setChannelId = channelId;
-  console.log(setChannelId);
 
   // Make sure this is the right channel
-  // if (messageCount === 5) {
-  //   messageCount = 0;
-  //   const data = await createEmbedData();
-  //   const exampleEmbed = new EmbedBuilder()
-  //     .setColor(0x0099ff)
-  //     .setTitle("Calm Content")
-  //     .addFields(data)
-  //     .setTimestamp();
-  //   client.channels.cache.get(setChannelId).send({ embeds: [exampleEmbed] });
-  // }
+  if (messageCount === 5) {
+    messageCount = 0;
+    const data = await createEmbedData();
+    const exampleEmbed = new EmbedBuilder()
+      .setColor(0x0099ff)
+      .setTitle("Calm Content")
+      .addFields(data)
+      .setTimestamp();
+    client.channels.cache.get(setChannelId).send({ embeds: [exampleEmbed] });
+  }
 
   if (message.author.bot) return;
-  if (!message.content || !message.content.startsWith(COMMAND_PREFIX)) return;
+  if (!message.content || !message.content.startsWith(COMMAND_PREFIX)) {
+    if (setChannelId === channel_id) messageCount++;
+    return;
+  }
   if (message.content.startsWith(COMMAND_PREFIX)) {
     let content = message.content;
 
@@ -74,6 +77,7 @@ client.on("messageCreate", async (message) => {
           .catch(() => void 0);
         return;
       case setChannelId === channel_id:
+        messageCount++;
         switch (true) {
           case message.content.startsWith(`${COMMAND_PREFIX}content_in`):
             await addContent(content, message_id, message.url)
@@ -137,7 +141,11 @@ client.on("messageCreate", async (message) => {
               .get(setChannelId)
               .send({ embeds: [helpEmbed] });
             return;
+          default:
+            return;
         }
+      default:
+        return;
     }
   }
 });
