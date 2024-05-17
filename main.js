@@ -36,7 +36,8 @@ client.on("messageCreate", async (message) => {
   const server_id = message.guild.id; // Will eventually need if using a DB
   const channel_id = message.channel.id;
   const message_id = message.id;
-  const setChannelId = channelId || 0;
+  const setChannelId = channelId;
+  console.log(setChannelId);
 
   // Make sure this is the right channel
   // if (messageCount === 5) {
