@@ -39,9 +39,11 @@ client.on("messageCreate", async (message) => {
   const setChannelId = channelId;
 
   // Make sure this is the right channel
+
+  if (message.author.bot) return;
+  if (!message.content || !message.content.startsWith(COMMAND_PREFIX)) return;
   if (setChannelId === channel_id) {
     messageCount++;
-    console.log(messageCount);
     if (messageCount === 5) {
       messageCount = 0;
       const data = await createEmbedData();
@@ -52,94 +54,93 @@ client.on("messageCreate", async (message) => {
         .setTimestamp();
       client.channels.cache.get(setChannelId).send({ embeds: [exampleEmbed] });
     }
-  }
-  if (message.author.bot) return;
-  if (!message.content || !message.content.startsWith(COMMAND_PREFIX)) return;
-  if (message.content.startsWith(COMMAND_PREFIX)) {
-    let content = message.content;
 
-    switch (true) {
-      case message.content.startsWith(`${COMMAND_PREFIX}set_channel`):
-        let channelId = message.content.replace(/\D/g, "");
-        await setChannel(channelId)
-          .catch(() => {
-            message.react("❌");
-            message.reply(
-              "There was an issue setting the channel to display content..."
-            );
-            return Promise.reject();
-          })
-          .then(() => {
-            message.react("✅");
-            message.reply("Channel was set...");
-          })
-          .catch(() => void 0);
-        return;
-      case setChannelId === channel_id:
-        switch (true) {
-          case message.content.startsWith(`${COMMAND_PREFIX}content_in`):
-            await addContent(content, message_id, message.url)
-              .catch((err) => {
-                message.react("❌");
-                message.reply("There was an issue adding in content...");
-                throw new Error(err);
-              })
-              .then((data) => {
-                message.react("✅");
-                message.reply(
-                  `Content will begin in <t:${data.discordTime}:R> at <t:${data.discordTime}:t> (\`${data.utcTime}\ UTC\`) on <t:${data.discordTime}:D>`
-                );
-              })
-              .catch(() => void 0);
-            return;
-          case message.content.startsWith(`${COMMAND_PREFIX}all_content`):
-            const data = await createEmbedData();
-            const exampleEmbed = new EmbedBuilder()
-              .setColor(0x0099ff)
-              .setTitle("Calm Content")
-              .addFields(data)
-              .setTimestamp();
-            client.channels.cache
-              .get(setChannelId)
-              .send({ embeds: [exampleEmbed] });
-            return;
-          case message.content.startsWith(`${COMMAND_PREFIX}delete`):
-            await deleteContentFromMessage(content)
-              .catch((err) => {
-                message.react("❌");
-                message.reply("There was an issue deleting this content...");
-                throw new Error(err);
-              })
-              .then((data) => {
-                message.react("✅");
-                message.reply(`Content has been deleted...`);
-              })
-              .catch(() => void 0);
-            return;
-          case message.content.startsWith(`${COMMAND_PREFIX}help_content`):
-            const helpEmbed = new EmbedBuilder()
-              .setColor(0x0099ff)
-              .setTitle("Content Bot Commants")
-              .addFields(
-                {
-                  name: "Add Content",
-                  value: "`!content_in [HH:MM] [Content Description]`",
-                },
-                {
-                  name: "Delete Content",
-                  value: "`!delete [Content ID]`",
-                },
-                {
-                  name: "Show All Content",
-                  value: "`!all_content`",
-                }
-              )
-              .setTimestamp();
-            client.channels.cache
-              .get(setChannelId)
-              .send({ embeds: [helpEmbed] });
-            return;
-        }
+    if (message.content.startsWith(COMMAND_PREFIX)) {
+      let content = message.content;
+
+      switch (true) {
+        case message.content.startsWith(`${COMMAND_PREFIX}set_channel`):
+          let channelId = message.content.replace(/\D/g, "");
+          await setChannel(channelId)
+            .catch(() => {
+              message.react("❌");
+              message.reply(
+                "There was an issue setting the channel to display content..."
+              );
+              return Promise.reject();
+            })
+            .then(() => {
+              message.react("✅");
+              message.reply("Channel was set...");
+            })
+            .catch(() => void 0);
+          return;
+        case setChannelId === channel_id:
+          switch (true) {
+            case message.content.startsWith(`${COMMAND_PREFIX}content_in`):
+              await addContent(content, message_id, message.url)
+                .catch((err) => {
+                  message.react("❌");
+                  message.reply("There was an issue adding in content...");
+                  throw new Error(err);
+                })
+                .then((data) => {
+                  message.react("✅");
+                  message.reply(
+                    `Content will begin in <t:${data.discordTime}:R> at <t:${data.discordTime}:t> (\`${data.utcTime}\ UTC\`) on <t:${data.discordTime}:D>`
+                  );
+                })
+                .catch(() => void 0);
+              return;
+            case message.content.startsWith(`${COMMAND_PREFIX}all_content`):
+              const data = await createEmbedData();
+              const exampleEmbed = new EmbedBuilder()
+                .setColor(0x0099ff)
+                .setTitle("Calm Content")
+                .addFields(data)
+                .setTimestamp();
+              client.channels.cache
+                .get(setChannelId)
+                .send({ embeds: [exampleEmbed] });
+              return;
+            case message.content.startsWith(`${COMMAND_PREFIX}delete`):
+              await deleteContentFromMessage(content)
+                .catch((err) => {
+                  message.react("❌");
+                  message.reply("There was an issue deleting this content...");
+                  throw new Error(err);
+                })
+                .then((data) => {
+                  message.react("✅");
+                  message.reply(`Content has been deleted...`);
+                })
+                .catch(() => void 0);
+              return;
+            case message.content.startsWith(`${COMMAND_PREFIX}help_content`):
+              const helpEmbed = new EmbedBuilder()
+                .setColor(0x0099ff)
+                .setTitle("Content Bot Commants")
+                .addFields(
+                  {
+                    name: "Add Content",
+                    value: "`!content_in [HH:MM] [Content Description]`",
+                  },
+                  {
+                    name: "Delete Content",
+                    value: "`!delete [Content ID]`",
+                  },
+                  {
+                    name: "Show All Content",
+                    value: "`!all_content`",
+                  }
+                )
+                .setTimestamp();
+              client.channels.cache
+                .get(setChannelId)
+                .send({ embeds: [helpEmbed] });
+              return;
+          }
+      }
     }
   }
 });
