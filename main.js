@@ -37,7 +37,7 @@ client.on("messageCreate", async (message) => {
   const server_id = message.guild.id; // Will eventually need if using a DB
   const channel_id = message.channel.id;
   const message_id = message.id;
-  const setChannelId = channelId;
+  let setChannelId = channelId;
 
   // Make sure this is the right channel
   if (messageCount === 5) {
@@ -45,7 +45,7 @@ client.on("messageCreate", async (message) => {
     const data = await createEmbedData();
     const exampleEmbed = new EmbedBuilder()
       .setColor(0x0099ff)
-      .setTitle("Calm Content")
+      .setTitle("FO Content")
       .addFields(data)
       .setTimestamp();
     client.channels.cache.get(setChannelId).send({ embeds: [exampleEmbed] });
@@ -73,6 +73,7 @@ client.on("messageCreate", async (message) => {
           .then(() => {
             message.react("✅");
             message.reply("Channel was set...");
+            setChannelId = channelId;
           })
           .catch(() => void 0);
         return;
