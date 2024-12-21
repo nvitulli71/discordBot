@@ -80,7 +80,7 @@ client.on("messageCreate", async (message) => {
       case setChannelId === channel_id:
         messageCount++;
         switch (true) {
-          case message.content.startsWith(`${COMMAND_PREFIX}content_in`):
+          case message.content.startsWith(`${COMMAND_PREFIX}add_content`):
             await addContent(content, message_id, message.url)
               .catch((err) => {
                 message.react("❌");
@@ -126,7 +126,7 @@ client.on("messageCreate", async (message) => {
               .addFields(
                 {
                   name: "Add Content",
-                  value: "`!content_in [HH:MM] [Content Description]`",
+                  value: "`!add_content [HH:MM] [Content Description]`",
                 },
                 {
                   name: "Delete Content",
