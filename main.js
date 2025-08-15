@@ -45,7 +45,7 @@ client.on("messageCreate", async (message) => {
     const data = await createEmbedData();
     const exampleEmbed = new EmbedBuilder()
       .setColor(0x0099ff)
-      .setTitle("FO Content")
+      .setTitle("Cocktent Bot")
       .addFields(data)
       .setTimestamp();
     client.channels.cache.get(setChannelId).send({ embeds: [exampleEmbed] });
@@ -74,8 +74,11 @@ client.on("messageCreate", async (message) => {
             message.react("✅");
             message.reply("Channel was set...");
             setChannelId = channelId;
+            console.log(setChannelId === channel_id);
+
           })
           .catch(() => void 0);
+          
         return;
       case setChannelId === channel_id:
         messageCount++;
@@ -99,7 +102,7 @@ client.on("messageCreate", async (message) => {
             const data = await createEmbedData();
             const exampleEmbed = new EmbedBuilder()
               .setColor(0x0099ff)
-              .setTitle("Calm Content")
+              .setTitle("Cocktent Content")
               .addFields(data)
               .setTimestamp();
             client.channels.cache
@@ -122,7 +125,7 @@ client.on("messageCreate", async (message) => {
           case message.content.startsWith(`${COMMAND_PREFIX}help_content`):
             const helpEmbed = new EmbedBuilder()
               .setColor(0x0099ff)
-              .setTitle("Content Bot Commants")
+              .setTitle("Cocktent Bot Commands")
               .addFields(
                 {
                   name: "Add Content",
