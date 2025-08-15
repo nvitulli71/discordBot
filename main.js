@@ -38,6 +38,8 @@ client.on("messageCreate", async (message) => {
   const channel_id = message.channel.id;
   const message_id = message.id;
   let setChannelId = channelId;
+      console.log(setChannelId === channel_id);
+
 
   // Make sure this is the right channel
   if (messageCount === 5) {
@@ -81,6 +83,8 @@ client.on("messageCreate", async (message) => {
           
         return;
       case setChannelId === channel_id:
+        console.log(setChannelId === channel_id);
+
         messageCount++;
         switch (true) {
           case message.content.startsWith(`${COMMAND_PREFIX}add_content`):
