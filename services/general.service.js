@@ -1,3 +1,4 @@
+const { EmbedBuilder } = require("discord.js");
 const fs = require("fs");
 const path = require("path");
 
@@ -27,20 +28,26 @@ async function createEmbedData() {
 
   const { content } = await getContent();
   content.sort((a, b) => a.time - b.time);
-  let responseData = [];
+  let responseEmbeds = [];
   content.forEach((element) => {
-    responseData.push({
-      name: `Content ID: ${element.id}`,
-      value: `[${element.content || "Unknown Content"}](${element.url}) in <t:${
-        element.time
-      }:R> at <t:${element.time}:t> (\`${element.utcTime}\ UTC\`) on <t:${
-        element.time
-      }:D>`,
-      inline: false,
-    });
+    responseEmbeds.push(
+      new EmbedBuilder()
+        .setColor(0x0099ff)
+        .setTitle(`${element.content || "Unknown Content"}`)
+        .setDescription(
+          `**${element.content || "Unknown Content"}** in <t:${
+            element.time
+          }:R> at <t:${element.time}:t> (\`${element.utcTime}\ UTC\`) on <t:${
+            element.time
+          }:D>`
+        )
+        .setImage(element.imageUrl)
+        .setFooter({ text: `Content ID: ${element.id}` })
+        .setTimestamp()
+    );
   });
 
-  return responseData;
+  return responseEmbeds;
 }
 
 async function cleanUpContent() {
@@ -67,14 +74,14 @@ async function cleanUpContent() {
   }
 }
 
-async function addContent(contentString, messageId, messageUrl) {
-  const { time, content } = parseContent(contentString);
+async function addContent(contentString) {
+  const { time, content, imageUrl } = contentString;
   const { discordTime, utcTime } = modifyDate(time);
   await addContentToFile({
     time: discordTime,
     content,
-    id: messageId,
-    url: messageUrl,
+    id: Date.now(),
+    imageUrl: imageUrl,
     utcTime,
   });
   return { discordTime, utcTime };
@@ -92,25 +99,20 @@ async function addContentToFile(contentObject) {
   }
 }
 
-async function updateContent(contentObject, messageId) {}
-
-async function deleteContentFromMessage(messageContent) {
-  const parseContent = messageContent.split(" ");
-  await deleteContent(parseContent[1]);
+async function deleteContentFromMessage(messageId) {
+  await deleteContent(messageId);
 }
 
 async function deleteContent(contentId) {
   const { content } = await getContent();
-  const index = content.findIndex((i) => {
-    return i.id === contentId;
-  });
-  content.splice(index, 1);
+
+  const updatedArray = content.filter((content) => content.id != contentId);
 
   const fileName = "content.json";
   let jsonPath = path.join(__dirname, "..", "data", `${fileName}`);
   if (fs.existsSync(jsonPath)) {
     const data = JSON.parse(fs.readFileSync(jsonPath));
-    data["content"] = content;
+    data["content"] = updatedArray;
     writeFile(fileName, data);
   }
 }
