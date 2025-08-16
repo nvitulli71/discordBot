@@ -1,19 +1,13 @@
+const { Client, Events, GatewayIntentBits } = require("discord.js");
+const { token, channel_id } = require("./config.json");
 const {
-  Client,
-  Events,
-  GatewayIntentBits,
-  EmbedBuilder,
-} = require("discord.js");
-const { token } = require("./config.json");
-const {
-  setChannel,
   addContent,
   createEmbedData,
   deleteContentFromMessage,
 } = require("./services/general.service");
+const { startSlashCommands } = require("./services/slash_commands.service");
 
-const COMMAND_PREFIX = "!";
-let messageCount = 0;
+startSlashCommands();
 
 // Create a new client instance
 const client = new Client({
@@ -31,129 +25,58 @@ client.once(Events.ClientReady, (readyClient) => {
 
 client.login(token);
 
-client.on("messageCreate", async (message) => {
-  const { channelId } = require("./data/channel.json");
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isCommand()) return;
 
-  const server_id = message.guild.id; // Will eventually need if using a DB
-  const channel_id = message.channel.id;
-  const message_id = message.id;
-  let setChannelId = channelId;
-      console.log(setChannelId === channel_id);
+  const { commandName, options } = interaction;
 
+  if (interaction.channelId != channel_id) return;
 
-  // Make sure this is the right channel
-  if (messageCount === 5) {
-    messageCount = 0;
-    const data = await createEmbedData();
-    const exampleEmbed = new EmbedBuilder()
-      .setColor(0x0099ff)
-      .setTitle("Cocktent Bot")
-      .addFields(data)
-      .setTimestamp();
-    client.channels.cache.get(setChannelId).send({ embeds: [exampleEmbed] });
-  }
-
-  if (message.author.bot) return;
-  if (!message.content || !message.content.startsWith(COMMAND_PREFIX)) {
-    if (setChannelId === channel_id) messageCount++;
-    return;
-  }
-  if (message.content.startsWith(COMMAND_PREFIX)) {
-    let content = message.content;
-
-    switch (true) {
-      case message.content.startsWith(`${COMMAND_PREFIX}set_channel`):
-        let channelId = message.content.replace(/\D/g, "");
-        await setChannel(channelId)
-          .catch(() => {
-            message.react("❌");
-            message.reply(
-              "There was an issue setting the channel to display content..."
-            );
-            return Promise.reject();
-          })
-          .then(() => {
-            message.react("✅");
-            message.reply("Channel was set...");
-            setChannelId = channelId;
-            console.log(setChannelId === channel_id);
-
-          })
-          .catch(() => void 0);
-          
-        return;
-      case setChannelId === channel_id:
-        console.log(setChannelId === channel_id);
-
-        messageCount++;
-        switch (true) {
-          case message.content.startsWith(`${COMMAND_PREFIX}add_content`):
-            await addContent(content, message_id, message.url)
-              .catch((err) => {
-                message.react("❌");
-                message.reply("There was an issue adding in content...");
-                throw new Error(err);
-              })
-              .then((data) => {
-                message.react("✅");
-                message.reply(
-                  `Content will begin in <t:${data.discordTime}:R> at <t:${data.discordTime}:t> (\`${data.utcTime}\ UTC\`) on <t:${data.discordTime}:D>`
-                );
-              })
-              .catch(() => void 0);
-            return;
-          case message.content.startsWith(`${COMMAND_PREFIX}all_content`):
-            const data = await createEmbedData();
-            const exampleEmbed = new EmbedBuilder()
-              .setColor(0x0099ff)
-              .setTitle("Cocktent Content")
-              .addFields(data)
-              .setTimestamp();
-            client.channels.cache
-              .get(setChannelId)
-              .send({ embeds: [exampleEmbed] });
-            return;
-          case message.content.startsWith(`${COMMAND_PREFIX}delete`):
-            await deleteContentFromMessage(content)
-              .catch((err) => {
-                message.react("❌");
-                message.reply("There was an issue deleting this content...");
-                throw new Error(err);
-              })
-              .then((data) => {
-                message.react("✅");
-                message.reply(`Content has been deleted...`);
-              })
-              .catch(() => void 0);
-            return;
-          case message.content.startsWith(`${COMMAND_PREFIX}help_content`):
-            const helpEmbed = new EmbedBuilder()
-              .setColor(0x0099ff)
-              .setTitle("Cocktent Bot Commands")
-              .addFields(
-                {
-                  name: "Add Content",
-                  value: "`!add_content [HH:MM] [Content Description]`",
-                },
-                {
-                  name: "Delete Content",
-                  value: "`!delete [Content ID]`",
-                },
-                {
-                  name: "Show All Content",
-                  value: "`!all_content`",
-                }
-              )
-              .setTimestamp();
-            client.channels.cache
-              .get(setChannelId)
-              .send({ embeds: [helpEmbed] });
-            return;
-          default:
-            return;
-        }
-      default:
-        return;
-    }
+  switch (commandName) {
+    case "delete":
+      const content_id = options.getString("content_id");
+      await deleteContentFromMessage(content_id)
+        .catch(async (err) => {
+          await interaction.reply(
+            `There was an issue deleting content. Please reach out to an admin.`
+          );
+          throw new Error(err);
+        })
+        .then(async (data) => {
+          await interaction.reply(
+            `Deleted content entry with ID: ${content_id}`
+          );
+          const embedData = await createEmbedData();
+          await interaction.followUp({ embeds: embedData.flat() });
+        })
+        .catch(() => void 0);
+      return;
+    case "add_content":
+      await addContent({
+        content: options.getString("content"),
+        time: options.getString("time"),
+        imageUrl: options.getAttachment("image")?.url,
+      })
+        .catch(async (err) => {
+          await interaction.reply(
+            `There was an issue adding content. Please reach out to an admin.`
+          );
+          throw new Error(err);
+        })
+        .then(async (data) => {
+          await interaction.reply(
+            `Added a new content entry. Content will begin in <t:${data.discordTime}:R> at <t:${data.discordTime}:t> (\`${data.utcTime}\ UTC\`) on <t:${data.discordTime}:D>`
+          );
+          const embedData = await createEmbedData();
+          await interaction.followUp({ embeds: embedData.flat() });
+        })
+        .catch((err) => console.log(err));
+      return;
+    case "list_content":
+      const embedData = await createEmbedData();
+      await interaction.reply({ embeds: embedData.flat() });
+      return;
+    default:
+      break;
   }
 });
